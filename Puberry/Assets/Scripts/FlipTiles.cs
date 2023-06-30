@@ -24,7 +24,7 @@ public class FlipTiles : MonoBehaviour
 
     void Update()
     {
-        if(openCount == 3)
+        if(openCount == 5)
         {
             tileArranger.RemoveLives();
             openCount = 0;

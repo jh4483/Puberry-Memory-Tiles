@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class ArrangeTiles : MonoBehaviour
 {
@@ -12,14 +13,21 @@ public class ArrangeTiles : MonoBehaviour
     private string tileOne;
     private string tileTwo;
     public static bool isCheckingTiles;
-    public int livesAvailable;
-    public Text timerCount;
-    public int timeLeft;
+    private int livesAvailable;
+    private float timeLeft;
+    private int tilesCompleted;
 
     void Start()
     {
         RearrangeTiles();
         livesAvailable = 0;
+        timeLeft = 180;
+        tilesCompleted = 0;
+        timerCount.text = timeLeft.ToString();
+        if(timeLeft < 181)
+        {
+            StartCoroutine(TimerStarts());
+        }
     }
 
     void Update()
@@ -30,7 +38,17 @@ public class ArrangeTiles : MonoBehaviour
             tileTwo = ArrangeTiles.tileName[1];
             StartCoroutine(CheckTiles());
         }
+        timerCount.text = timeLeft.ToString();
 
+        if(timeLeft == 0)
+        {
+            SceneManager.LoadScene("End Scene");
+        }
+
+        if(tilesCompleted == 24)
+        {
+            SceneManager.LoadScene("Win Scene");
+        }
     }
 
     public void RearrangeTiles()
@@ -66,9 +84,24 @@ public class ArrangeTiles : MonoBehaviour
             GameObject matchedTileTwo = GameObject.Find(tileTwo);
             matchedTileTwo.GetComponent<Image>().sprite = Resources.Load<Sprite>("Completed");
             matchedTileTwo.name = "Completed";
+            tilesCompleted = tilesCompleted + 2;
         }
-        else if (tileOne != tileTwo)
+        else if (tileOne != tileTwo && tileOne != "Clock added" && tileTwo != "Clock added")
         {
+            yield return new WaitForSeconds(0.5f);
+            GameObject unmatchedTileOne = GameObject.Find(tileOne);
+            GameObject unmatchedTileTwo = GameObject.Find(tileTwo);
+            unmatchedTileOne.GetComponent<Image>().sprite = Resources.Load<Sprite>("Original");
+            unmatchedTileOne.name = tileOne.Replace(" added", "");
+            unmatchedTileOne.GetComponent<FlipTiles>().isOpen = false;
+            unmatchedTileTwo.GetComponent<Image>().sprite = Resources.Load<Sprite>("Original");
+            unmatchedTileTwo.name = tileTwo.Replace(" added", "");
+            unmatchedTileTwo.GetComponent<FlipTiles>().isOpen = false;
+        }
+
+        else if (tileOne == "Clock added" || tileTwo == "Clock added")
+        {
+            timeLeft = timeLeft - 10;
             yield return new WaitForSeconds(1f);
             GameObject unmatchedTileOne = GameObject.Find(tileOne);
             unmatchedTileOne.GetComponent<Image>().sprite = Resources.Load<Sprite>("Original");
@@ -81,6 +114,15 @@ public class ArrangeTiles : MonoBehaviour
         }
 
         isCheckingTiles = false;
+    }
+
+    public IEnumerator TimerStarts()
+    {
+        while(true)
+        {
+            yield return new WaitForSeconds(1);
+            timeLeft--;
+        }
     }
 
     public void RemoveLives()
